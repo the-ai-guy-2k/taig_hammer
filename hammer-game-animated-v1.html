@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TAIG Hammer Game - PN // Animated v1, small and local</title>
+<!--
+  TAIG HAMMER GAME - PN, SMALL ANIMATED v1
+  Built from the dice v1 core, same numbers, same win / lose, same mission.
+  This version adds SMALL, simple visuals that show what the game state did.
+  No 3D, no video, no sound, no external files, no internet, no account.
+  Open this file in a browser and play. That is it.
+  Original grimdark sci-fi game. Not affiliated with any other game company.
+  No borrowed name, branding, factions, or licence claim.
+
+  HOW THE VISUALS WORK, IN PLAIN WORDS:
+  Every visual is just the game state, drawn as a shape.
+  - Health bar width = health. It moves when health moves.
+  - Gear bar width = gear condition. It moves when gear moves.
+  - Supply boxes = supplies. One fades when you use one, one appears on a crit.
+  - Salvage box = salvage found or not. It pops in when you find it.
+  - Raider shape = raider state. Watching = standing on the right.
+    Avoided = slides off to the side and fades. Down = falls flat.
+  - Hatch door = win or not. Closed until you win, then it slides open.
+  - Dice = the roll. It cycles numbers fast, then stops on the real roll.
+  - Damage shake = you just lost health. The scene shakes once, briefly.
+  If a visual and a number ever disagree, the number wins. The visual is a mirror, not a second game.
+-->
+<style>
+  :root{
+    --bg:#141210; --panel:#1e1b18; --edge:#3a332c;
+    --bone:#d6cdb8; --muted:#9a9080; --rust:#c07a2e;
+    --hazard:#d9a441; --red:#8c3324; --steel:#6b7280;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--bone);
+    font-family:'Helvetica Neue',Arial,sans-serif;line-height:1.55}
+  header{padding:28px 24px 18px}
+  .hazard{height:4px;background:repeating-linear-gradient(45deg,var(--hazard) 0 12px,var(--bg) 12px 24px)}
+  h1,h2,h3{font-family:'Arial Narrow','Helvetica Neue',sans-serif;text-transform:uppercase;
+    letter-spacing:.12em;color:var(--rust);margin:0 0 10px}
+  h1{font-size:28px} h2{font-size:19px}
+  p.muted,.muted{color:var(--muted)}
+  main{max-width:900px;margin:0 auto;padding:24px}
+  .panel{background:var(--panel);border:1px solid var(--edge);
+    border-top:3px solid var(--rust);padding:18px;margin:0 0 18px}
+  button{font-family:'Arial Narrow','Helvetica Neue',sans-serif;text-transform:uppercase;
+    letter-spacing:.08em;background:#2b2620;color:var(--bone);border:1px solid var(--rust);
+    padding:12px 14px;margin:6px 6px 6px 0;cursor:pointer;font-size:15px}
+  button:hover:not(:disabled){background:#3a332c}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .roll{font-family:'Courier New',monospace;background:#100e0c;border:1px solid var(--edge);
+    padding:16px;font-size:18px}
+  .roll b{color:var(--rust)}
+  .log{font-family:'Courier New',monospace;background:#100e0c;border:1px solid var(--edge);
+    padding:12px;max-height:220px;overflow:auto;font-size:14px;white-space:pre-wrap}
+  .end{display:none;border:2px solid var(--hazard);padding:18px;margin:0 0 18px}
+  .end.lose{border-color:var(--red)}
+  footer{max-width:900px;margin:0 auto;padding:0 24px 32px;color:var(--muted);font-size:13px}
+
+  /* ---- THE SCENE: simple shapes, flat colours, no photos ---- */
+  .scene{position:relative;height:180px;background:#100e0c;border:1px solid var(--edge);overflow:hidden;margin:0 0 12px}
+  .scene.shake{animation:shake .35s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .wreck{position:absolute;left:18px;bottom:18px;width:150px;height:80px;background:#2b2620;border:1px solid var(--edge)}
+  .wreck:before{content:"WRECK";position:absolute;top:8px;left:8px;font-family:'Courier New',monospace;font-size:12px;color:var(--muted);letter-spacing:.1em}
+  .salvage{position:absolute;left:58px;bottom:38px;width:34px;height:34px;background:var(--hazard);border:2px solid var(--bone);
+    display:none;align-items:center;justify-content:center;font-family:'Courier New',monospace;font-size:11px;color:#141210;font-weight:bold}
+  .salvage.show{display:flex;animation:pop .45s}
+  @keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+  .raider{position:absolute;right:120px;bottom:18px;width:46px;height:88px;background:var(--red);border:1px solid var(--edge);
+    transition:transform .6s, opacity .6s}
+  .raider:before{content:"RAIDER";position:absolute;top:-18px;left:0;font-family:'Courier New',monospace;font-size:11px;color:var(--muted)}
+  .raider.avoided{transform:translateX(90px);opacity:0}
+  .raider.down{transform:rotate(90deg);transform-origin:bottom left;opacity:.7}
+  .hatch{position:absolute;right:18px;bottom:18px;width:74px;height:104px;background:#3a332c;border:1px solid var(--edge);overflow:hidden}
+  .hatch:before{content:"HATCH";position:absolute;top:8px;left:8px;font-family:'Courier New',monospace;font-size:11px;color:var(--muted)}
+  .hatchdoor{position:absolute;left:0;top:0;width:100%;height:100%;background:var(--rust);transition:transform .8s}
+  .hatch.open .hatchdoor{transform:translateX(100%)}
+  .die{width:72px;height:72px;background:#2b2620;border:2px solid var(--rust);display:flex;align-items:center;justify-content:center;
+    font-family:'Courier New',monospace;font-size:34px;color:var(--bone);margin:0 0 12px}
+  .die.rolling{animation:shake .3s infinite}
+  .bar{height:18px;background:#100e0c;border:1px solid var(--edge);margin:4px 0 12px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--rust);transition:width .5s}
+  .bar.red i{background:var(--red)}
+  .supplies{display:flex;gap:8px;margin:4px 0 12px}
+  .supply{width:34px;height:34px;background:var(--hazard);border:1px solid var(--bone);transition:opacity .4s, transform .4s}
+  .supply.used{opacity:.15;transform:scale(.85)}
+</style>
+</head>
+<body>
+<header>
+  <h1>TAIG Hammer Game &mdash; PN</h1>
+  <p class="muted">Animated v1, small and local // Solo // Original grimdark sci-fi // <b style="color:var(--hazard)">NO SPEND, NO ONLINE, NO AI ROLLS</b></p>
+</header>
+<div class="hazard"></div>
+<main>
+
+  <section class="panel">
+    <h2>Finish the job and get out alive.</h2>
+    <p>You are at a wrecked transport in the rust yards. The salvage is inside. A raider is watching the far side. The way out is a jammed hatch.</p>
+    <p class="muted">Watch the scene below. When a number changes, a shape changes with it. That is the animation — it shows the game, it does not play a second game.</p>
+  </section>
+
+  <section class="panel">
+    <h2>What you can see</h2>
+    <div class="scene" id="scene">
+      <div class="wreck"></div>
+      <div class="salvage" id="salvageBox">SALVAGE</div>
+      <div class="raider" id="raiderShape"></div>
+      <div class="hatch" id="hatchShape"><div class="hatchdoor"></div></div>
+    </div>
+    <div class="die" id="die">-</div>
+    <p><span class="muted">Health</span> <b id="healthText">20 / 20</b></p>
+    <div class="bar" id="healthBar"><i id="healthFill" style="width:100%"></i></div>
+    <p><span class="muted">Gear condition</span> <b id="gearText">100%</b></p>
+    <div class="bar" id="gearBar"><i id="gearFill" style="width:100%"></i></div>
+    <p><span class="muted">Supplies</span> <b id="suppliesText">3</b></p>
+    <div class="supplies" id="supplyBoxes"></div>
+    <p><span class="muted">Salvage:</span> <b id="salvageText">Not found</b> &nbsp; <span class="muted">Raider:</span> <b id="raiderText">Watching</b></p>
+  </section>
+
+  <section class="panel">
+    <h2>Pick an action</h2>
+    <p>
+      <button onclick="doAction('search')">Search the wreck<br><span class="muted" style="text-transform:none;letter-spacing:0">Search +3, target 12</span></button>
+      <button onclick="doAction('sneak')">Sneak past the raider<br><span class="muted" style="text-transform:none;letter-spacing:0">Sneak +2, target 14</span></button>
+      <button onclick="doAction('shoot')">Shoot the raider<br><span class="muted" style="text-transform:none;letter-spacing:0">Shoot +3, target 13</span></button>
+      <button onclick="doAction('fix')">Fix the jammed hatch and exit<br><span class="muted" style="text-transform:none;letter-spacing:0">Fix +2, target 11 — needs salvage first</span></button>
+    </p>
+    <p>
+      <button onclick="useSupply()">Use a supply</button>
+      <button id="pauseBtn" onclick="togglePause()">Pause</button>
+      <button onclick="restart()">Play again</button>
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>Last roll</h2>
+    <div class="roll" id="lastRoll">No roll yet. Pick an action above.</div>
+  </section>
+
+  <div class="end" id="winBox">
+    <h2>Job done. You got out alive.</h2>
+    <p>The hatch slides open in the scene above. Hit Play again to reset and run it again.</p>
+  </div>
+  <div class="end lose" id="loseBox">
+    <h2>Run over. Health out.</h2>
+    <p>Hit Play again to reset to the starting state and run it again.</p>
+  </div>
+
+  <section class="panel">
+    <h2>Roll log</h2>
+    <div class="log" id="log"></div>
+  </section>
+
+  <section class="panel">
+    <h2>How each action lands — exact, same as dice v1</h2>
+    <ul>
+      <li><b>Search (+3, target 12):</b> success = salvage found. Crit = salvage found + 1 supply. Fail = nothing. Crit fail = nothing, -2 health, gear -10%.</li>
+      <li><b>Sneak (+2, target 14):</b> success = raider avoided. Crit = raider avoided + 1 supply. Fail = spotted, -5 health. Crit fail = spotted, -5 health, gear -10%.</li>
+      <li><b>Shoot (+3, target 13):</b> success = raider down. Crit = raider down + 1 supply, no damage. Fail = miss, -4 health. Crit fail = miss, -4 health, gear -10%.</li>
+      <li><b>Fix (+2, target 11):</b> if salvage is not found, no roll — “You have not got the salvage yet. Search the wreck first.” Success or crit with salvage = win. Fail = hatch stays jammed, -2 health. Crit fail = hatch stays jammed, -2 health, gear -10%.</li>
+      <li><b>Use a supply (no roll):</b> +5 health, up to 20, uses 1 supply. At 0 supplies: “No supplies left.”, nothing changes.</li>
+    </ul>
+    <p class="muted">Crit = natural 20, crit fail = natural 1, before bonuses. Gear drops 10% on a crit fail, never below 0%, and never causes a loss in v1. Animation does not change any number. The numbers are the game.</p>
+  </section>
+
+</main>
+<footer>TAIG Hammer Game - PN, animated v1, small and local. Single offline file. Original game, not affiliated with any other game company, no licence claim. No spend, no multiplayer, no paid power.</footer>
+
+<script>
+// ---- STATE: exact starting state, same as dice v1 ----
+let state = { health: 20, supplies: 3, gear: 100, salvageFound: false, raider: 'watching', over: false, paused: false };
+const SAVE_KEY = 'taig-hammer-animated-v1-save';
+let rolling = false;
+
+const ACTIONS = {
+  search: { label: 'Search the wreck', skill: 3, dc: 12 },
+  sneak:  { label: 'Sneak past the raider', skill: 2, dc: 14 },
+  shoot:  { label: 'Shoot the raider', skill: 3, dc: 13 },
+  fix:    { label: 'Fix the jammed hatch and exit', skill: 2, dc: 11 }
+};
+
+function rollD20() { return 1 + Math.floor(Math.random() * 20); }
+function outcomeFor(roll, total, dc) {
+  if (roll === 20) return 'CRIT SUCCESS';
+  if (roll === 1) return 'CRIT FAIL';
+  return total >= dc ? 'SUCCESS' : 'FAIL';
+}
+function loseGear() { state.gear = Math.max(0, state.gear - 10); }
+
+function saveGame() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify({ state: state, log: document.getElementById('log').textContent, lastRoll: document.getElementById('lastRoll').textContent })); } catch (e) {}
+}
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (!data || !data.state) return;
+    state = Object.assign({ health: 20, supplies: 3, gear: 100, salvageFound: false, raider: 'watching', over: false, paused: false }, data.state);
+    if (data.log) document.getElementById('log').textContent = data.log;
+    if (data.lastRoll) document.getElementById('lastRoll').textContent = data.lastRoll;
+    if (state.over) {
+      if (state.health <= 0) document.getElementById('loseBox').style.display = 'block';
+      else document.getElementById('winBox').style.display = 'block';
+    }
+  } catch (e) {}
+}
+
+// ---- VISUALS: draw the state, nothing else ----
+function render() {
+  document.getElementById('healthText').textContent = state.health + ' / 20';
+  document.getElementById('healthFill').style.width = (state.health * 5) + '%';
+  document.getElementById('healthBar').className = 'bar' + (state.health <= 5 ? ' red' : '');
+  document.getElementById('gearText').textContent = state.gear + '%';
+  document.getElementById('gearFill').style.width = state.gear + '%';
+  document.getElementById('suppliesText').textContent = state.supplies;
+  const boxes = document.getElementById('supplyBoxes');
+  boxes.innerHTML = '';
+  for (let i = 0; i < Math.max(0, state.supplies); i++) {
+    const d = document.createElement('div'); d.className = 'supply'; boxes.appendChild(d);
+  }
+  document.getElementById('salvageText').textContent = state.salvageFound ? 'Found' : 'Not found';
+  document.getElementById('salvageBox').className = 'salvage' + (state.salvageFound ? ' show' : '');
+  document.getElementById('raiderText').textContent = state.raider === 'watching' ? 'Watching' : state.raider === 'avoided' ? 'Avoided' : 'Down';
+  const r = document.getElementById('raiderShape');
+  r.className = 'raider' + (state.raider === 'avoided' ? ' avoided' : state.raider === 'down' ? ' down' : '');
+  document.getElementById('hatchShape').className = 'hatch' + (state.over && state.health > 0 ? ' open' : '');
+  document.querySelectorAll('main button').forEach(function (b) {
+    const t = b.textContent;
+    if (t.indexOf('Play again') !== -1 || t.indexOf('Pause') !== -1 || t.indexOf('Resume') !== -1) return;
+    b.disabled = !!(state.over || state.paused || rolling);
+  });
+  document.getElementById('pauseBtn').textContent = state.paused ? 'Resume' : 'Pause';
+}
+
+function shakeScene() {
+  const s = document.getElementById('scene');
+  s.classList.remove('shake'); void s.offsetWidth; s.classList.add('shake');
+}
+
+function showResult(label, roll, skill, total, dc, outcome, effect) {
+  document.getElementById('lastRoll').innerHTML =
+    'You tried: <b>' + label + '</b><br>' +
+    'Rolled <b>' + roll + '</b>, modifier +' + skill + ', total <b>' + total + '</b>, target ' + dc + ' — <b>' + outcome + '</b><br>' + effect;
+  const log = document.getElementById('log');
+  log.textContent += (log.textContent ? '\n' : '') +
+    label + ': rolled ' + roll + ', modifier +' + skill + ', total ' + total + ', target ' + dc + ', outcome ' + outcome + '. ' + effect;
+  log.scrollTop = log.scrollHeight;
+}
+
+function checkLose() {
+  if (state.health <= 0) {
+    state.health = 0; state.over = true;
+    document.getElementById('loseBox').style.display = 'block';
+    return true;
+  }
+  return false;
+}
+
+function applyAction(key, roll) {
+  const a = ACTIONS[key];
+  const total = roll + a.skill;
+  const outcome = outcomeFor(roll, total, a.dc);
+  let effect = '';
+  const healthBefore = state.health;
+  if (key === 'search') {
+    if (outcome === 'CRIT SUCCESS') { state.salvageFound = true; state.supplies += 1; effect = 'Salvage found, +1 supply.'; }
+    else if (outcome === 'SUCCESS') { state.salvageFound = true; effect = 'Salvage found.'; }
+    else if (outcome === 'FAIL') { effect = 'You find nothing. No damage.'; }
+    else { state.health -= 2; loseGear(); effect = 'You find nothing and lose 2 health (cut on wreckage). Gear -10%.'; }
+  } else if (key === 'sneak') {
+    if (outcome === 'CRIT SUCCESS') { state.raider = 'avoided'; state.supplies += 1; effect = 'Raider does not spot you, +1 supply.'; }
+    else if (outcome === 'SUCCESS') { state.raider = 'avoided'; effect = 'Raider does not spot you.'; }
+    else if (outcome === 'FAIL') { state.health -= 5; effect = 'Raider spots you, you lose 5 health.'; }
+    else { state.health -= 5; loseGear(); effect = 'Raider spots you, you lose 5 health. Gear -10%.'; }
+  } else if (key === 'shoot') {
+    if (outcome === 'CRIT SUCCESS') { state.raider = 'down'; state.supplies += 1; effect = 'Raider is down, no damage to you, +1 supply.'; }
+    else if (outcome === 'SUCCESS') { state.raider = 'down'; effect = 'Raider is down.'; }
+    else if (outcome === 'FAIL') { state.health -= 4; effect = 'You miss, you lose 4 health (return fire).'; }
+    else { state.health -= 4; loseGear(); effect = 'You miss, you lose 4 health. Gear -10%.'; }
+  } else if (key === 'fix') {
+    if (outcome === 'CRIT SUCCESS' || outcome === 'SUCCESS') {
+      state.over = true;
+      document.getElementById('winBox').style.display = 'block';
+      effect = 'Job done. You got out alive.';
+    } else if (outcome === 'FAIL') {
+      state.health -= 2; effect = 'Hatch stays jammed, you lose 2 health.';
+    } else {
+      state.health -= 2; loseGear(); effect = 'Hatch stays jammed, you lose 2 health. Gear -10%.';
+    }
+  }
+  showResult(a.label, roll, a.skill, total, a.dc, outcome, effect);
+  if (state.health < healthBefore) shakeScene();
+  if (!state.over) checkLose();
+  render();
+  saveGame();
+}
+
+function doAction(key) {
+  if (state.over || state.paused || rolling) return;
+  if (key === 'fix' && !state.salvageFound) {
+    document.getElementById('lastRoll').textContent = 'You have not got the salvage yet. Search the wreck first.';
+    const log = document.getElementById('log');
+    log.textContent += (log.textContent ? '\n' : '') + 'Fix the jammed hatch and exit: no roll — you have not got the salvage yet. Search the wreck first.';
+    saveGame();
+    return;
+  }
+  // Dice animation: cycle numbers, then settle on the real roll. The roll is decided up front, the animation only shows it.
+  const finalRoll = rollD20();
+  rolling = true; render();
+  const die = document.getElementById('die');
+  die.classList.add('rolling');
+  let ticks = 0;
+  const timer = setInterval(function () {
+    die.textContent = 1 + Math.floor(Math.random() * 20);
+    ticks++;
+    if (ticks >= 8) {
+      clearInterval(timer);
+      die.classList.remove('rolling');
+      die.textContent = finalRoll;
+      rolling = false;
+      applyAction(key, finalRoll);
+    }
+  }, 70);
+}
+
+function useSupply() {
+  if (state.over || state.paused || rolling) return;
+  if (state.supplies <= 0) {
+    document.getElementById('lastRoll').textContent = 'No supplies left.';
+    return;
+  }
+  state.supplies -= 1;
+  state.health = Math.min(20, state.health + 5);
+  document.getElementById('lastRoll').textContent = 'Used a supply: +5 health, up to 20. Supplies left: ' + state.supplies + '.';
+  const log = document.getElementById('log');
+  log.textContent += (log.textContent ? '\n' : '') + 'Use a supply: +5 health, no roll. Supplies left: ' + state.supplies + '.';
+  render();
+  saveGame();
+}
+
+function togglePause() {
+  if (state.over) return;
+  state.paused = !state.paused;
+  if (state.paused) {
+    document.getElementById('lastRoll').textContent = 'Paused — turn frozen. Hit Resume to continue exactly where you left off.';
+  }
+  render();
+  saveGame();
+}
+
+function restart() {
+  state = { health: 20, supplies: 3, gear: 100, salvageFound: false, raider: 'watching', over: false, paused: false };
+  try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+  document.getElementById('winBox').style.display = 'none';
+  document.getElementById('loseBox').style.display = 'none';
+  document.getElementById('lastRoll').textContent = 'No roll yet. Pick an action above.';
+  document.getElementById('log').textContent = '';
+  document.getElementById('die').textContent = '-';
+  render();
+}
+
+loadGame();
+render();
+</script>
+</body>
+</html>
