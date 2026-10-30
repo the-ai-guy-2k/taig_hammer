@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TAIG Hammer Game - PN // The Board</title>
+<style>
+  :root{
+    --bg:#141210; --panel:#1e1b18; --edge:#3a332c;
+    --bone:#d6cdb8; --muted:#9a9080; --rust:#c07a2e;
+    --hazard:#d9a441; --red:#8c3324; --steel:#6b7280;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--bone);
+    font-family:'Helvetica Neue',Arial,sans-serif;line-height:1.55}
+  header{padding:28px 24px 18px}
+  .hazard{height:4px;background:repeating-linear-gradient(45deg,var(--hazard) 0 12px,var(--bg) 12px 24px)}
+  h1,h2,h3{font-family:'Arial Narrow','Helvetica Neue',sans-serif;text-transform:uppercase;
+    letter-spacing:.12em;color:var(--rust);margin:0 0 10px}
+  h1{font-size:28px} h2{font-size:19px} h3{font-size:15px}
+  p.muted,.muted{color:var(--muted)}
+  main{max-width:900px;margin:0 auto;padding:24px}
+  .panel{background:var(--panel);border:1px solid var(--edge);
+    border-top:3px solid var(--rust);padding:18px;margin:0 0 18px}
+  table{width:100%;border-collapse:collapse;font-size:15px}
+  th{font-family:'Arial Narrow',sans-serif;text-transform:uppercase;letter-spacing:.1em;
+    color:var(--rust);text-align:left;border-bottom:1px solid var(--edge);padding:8px 6px}
+  td{border-bottom:1px solid #2c2721;padding:10px 6px;vertical-align:top}
+  .pill{display:inline-block;padding:2px 8px;border:1px solid;font-size:12px;
+    text-transform:uppercase;letter-spacing:.08em}
+  .started{color:var(--rust);border-color:var(--rust)}
+  .notstarted{color:var(--steel);border-color:var(--steel)}
+  .waiting{color:#d98a7a;border-color:var(--red)}
+  .open{color:var(--bone);border-color:var(--bone)}
+  .locked{color:var(--hazard);border-color:var(--hazard)}
+  .flow,.mono{font-family:'Courier New',monospace;background:#100e0c;border:1px solid var(--edge);
+    padding:16px;white-space:pre-wrap;color:var(--bone)}
+  .flow b{color:var(--rust)}
+  .step{border-left:3px solid var(--rust);padding:2px 0 2px 14px;margin:0 0 16px}
+  .step h3{margin-bottom:4px}
+  .step p{margin:4px 0}
+  ul,ol{margin:8px 0;padding-left:20px}
+  li{margin:4px 0}
+  .swatches{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .sw{flex:1 1 130px;border:1px solid var(--edge);padding:10px;font-size:13px}
+  .sw b{display:block;text-transform:uppercase;letter-spacing:.08em;font-size:12px}
+  .note{border-left:3px solid var(--red);padding:10px 14px;color:var(--muted)}
+  footer{max-width:900px;margin:0 auto;padding:0 24px 32px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <h1>TAIG Hammer Game &mdash; PN</h1>
+  <p class="muted">The board &mdash; everything in one place // Original grimdark sci-fi // No borrowed names, symbols, or slogans // <b style="color:var(--hazard)">LOCKED Oct 28, 2026</b></p>
+</header>
+<div class="hazard"></div>
+<main>
+
+  <section class="panel">
+    <h2>Locked rules for v1</h2>
+    <ul>
+      <li>Simple-first, broke-mode, offline-first</li>
+      <li>No AI in v1 rolls</li>
+      <li>No PvP, no gacha, no 3D, no multiplayer, no paid power</li>
+      <li>Cole (Q-ball Jax) is Tee&rsquo;s designated test engineer, but his acceptance is not on record yet &mdash; no message to Cole until Tee says so</li>
+      <li>One board only: this file holds the dashboard, the look, the data flow, and how the game is played. New sections go here, not in separate boards.</li>
+    </ul>
+    <p class="muted">Tee&rsquo;s way in: learning while building. Each piece below says what it is, in plain language, before it says how to build it.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Board look &mdash; genre match (LOCKED)</h2>
+    <p>The board should look like the game it tracks: original grimdark sci-fi, worn and industrial, not clean SaaS, not bright fantasy, not neon cyberpunk.</p>
+    <div class="swatches">
+      <div class="sw" style="background:#141210"><b>Background</b>#141210</div>
+      <div class="sw" style="background:#1e1b18"><b>Panel</b>#1e1b18</div>
+      <div class="sw"><b>Main text</b>#d6cdb8 bone</div>
+      <div class="sw"><b>Muted</b>#9a9080</div>
+      <div class="sw" style="color:#c07a2e"><b>Rust amber</b>#c07a2e</div>
+      <div class="sw" style="color:#d9a441"><b>Hazard</b>#d9a441</div>
+      <div class="sw" style="color:#d98a7a"><b>Rust red</b>#8c3324</div>
+      <div class="sw" style="color:#6b7280"><b>Steel</b>#6b7280</div>
+    </div>
+    <p><b>Type:</b> Headings uppercase, wide letter-spacing, system condensed sans. Numbers, rolls, and logs in monospace, so they read like a readout. Body in plain sans, bone on charcoal. No bright white text, no downloaded fonts.</p>
+    <p><b>Shape:</b> Flat panels, 1&ndash;2px hard corners, 1px panel-edge border, thin rust top rule. One thin hazard stripe per board header only. No rounded cute cards, no soft pastel shadows, no glass blur, no photos, no borrowed iconography, no faction symbols, no slogans. No 3D, animation, or glow in v1 &mdash; the genre comes from color, type, and hard edges.</p>
+    <p><b>Status pills:</b> Started = amber outline, Not started = steel grey, Waiting = rust red, Locked = hazard amber, Done = muted bone/green only when actually tested &mdash; never bright green.</p>
+  </section>
+
+  <section class="panel">
+    <h2>1. Dev dashboard &mdash; where we are</h2>
+    <p class="muted">This is the dashboard for the development, not the game screen itself. It tracks what exists, what&rsquo;s next, and what &ldquo;done&rdquo; means, so nothing drifts.</p>
+    <table>
+      <tr><th>Piece</th><th>Status</th><th>What &ldquo;done&rdquo; means</th><th>You learn here</th></tr>
+      <tr><td>Dev dashboard</td><td><span class="pill started">Started</span></td><td>You can see every piece at a glance</td><td>How a build breaks into small, testable pieces</td></tr>
+      <tr><td>Board look</td><td><span class="pill locked">Locked</span></td><td>Preview approved, palette/type/shape final for v1</td><td>How genre is carried by color, type, and hard edges</td></tr>
+      <tr><td>Game data flow</td><td><span class="pill started">Started</span></td><td>You can trace one action from button to result</td><td>How data moves through a game</td></tr>
+      <tr><td>How the game is played</td><td><span class="pill started">Started</span></td><td>Plain-language play + objectives on the board</td><td>What the player actually does, and what winning means</td></tr>
+      <tr><td>Dice engine</td><td><span class="pill started">Started</span></td><td>Roll a d20, add a modifier, show crit / fail, keep a roll log</td><td>Random numbers, modifiers, comparing to a target</td></tr>
+      <tr><td>Playable dice v1</td><td><span class="pill locked">Built Oct 30</span></td><td>Single offline file, playable start to finish, repo taig_hammer</td><td>How a full loop plays, not just a roll</td></tr>
+      <tr><td>Character sheet (simple)</td><td><span class="pill notstarted">Not started</span></td><td>A few stats the dice engine can actually use</td><td>What &ldquo;state&rdquo; is: numbers the game remembers</td></tr>
+      <tr><td>One short mission</td><td><span class="pill open">Decision open</span></td><td>Dice engine + one short run, a few checks, pass/fail ending</td><td>How story, choices, and checks connect</td></tr>
+      <tr><td>Test with Cole</td><td><span class="pill waiting">Waiting</span></td><td>Cole breaks it, we fix what he finds, then lock it</td><td>Testing is part of building, not after it</td></tr>
+    </table>
+    <h3 style="margin-top:18px">Build order, learning order</h3>
+    <ol>
+      <li>Dashboard + data flow (now)</li>
+      <li>Dice engine only &mdash; the common core whether the mission comes next or not</li>
+      <li>Simple character sheet, only the stats the engine needs</li>
+      <li>Then decide: stop at the engine, or add one short mission</li>
+    </ol>
+    <p>The dice-only vs dice-plus-mission choice is still open. Nothing in steps 1&ndash;3 wastes work either way.</p>
+    <p class="muted">Development flow: Idea &rarr; ACI (written instructions for CAE) &rarr; CAE builds it locally on Tee&rsquo;s laptop &rarr; Tee tests it &rarr; Cole tests it (when Tee says go) &rarr; Fix &rarr; Lock it in. One ACI at a time. Copy-paste is still the link between Muse and CAE.</p>
+  </section>
+
+  <section class="panel">
+    <h2>2. Game data flow &mdash; one action, start to finish</h2>
+    <p>Think of the game as a loop. The player does something, the game figures out the result, shows it, and waits for the next thing. Nothing happens by magic &mdash; data moves in a line.</p>
+    <div class="flow">Player picks an action
+  &rarr; Game decides what kind of check it is
+  &rarr; Roll a d20 (random 1 to 20)
+  &rarr; Add the modifier (your skill bonus)
+  &rarr; Compare total to the target number (DC)
+  &rarr; Decide the outcome
+  &rarr; Apply the effect
+  &rarr; Update the game state
+  &rarr; Show the result on screen
+  &rarr; Back to: player picks the next action</div>
+
+    <div class="step"><h3>1. Player picks an action</h3><p>Example in original terms: &ldquo;Search the wreck&rdquo; or &ldquo;Shoot the raider.&rdquo; This is input. The game only knows what the player chose.</p></div>
+    <div class="step"><h3>2. Game decides what kind of check it is</h3><p>Search might be a perception-style check. Shooting might be an attack check. Each check points to one stat / modifier. No check, no roll.</p></div>
+    <div class="step"><h3>3. Roll a d20</h3><p>One random number, 1 to 20. Every face is equally likely. A natural 20 is a critical success, a natural 1 is a critical fail &mdash; before modifiers are even added.</p></div>
+    <div class="step"><h3>4. Add the modifier</h3><p>Total = roll + modifier. Example: roll 13 + modifier 3 = 16. The modifier is just how good your character is at that thing.</p></div>
+    <div class="step"><h3>5. Compare total to the target number (DC)</h3><p>If total is equal to or higher than the DC, you succeed. If lower, you fail. Example: DC 15, total 16 = success. DC 15, total 12 = fail. The DC is how hard the game decided this task is. It is not random.</p></div>
+    <div class="step"><h3>6. Decide the outcome</h3><p>Four buckets, keep them simple: Critical success (natural 20) / Success (total meets or beats DC) / Fail (total below DC) / Critical fail (natural 1). Later versions can add degrees of success. V1 does not need them.</p></div>
+    <div class="step"><h3>7. Apply the effect</h3><p>Success might mean: you find the salvage, you hit, the door opens. Fail might mean: you find nothing, you miss, you take damage, or the story moves a different way. The effect is the only place the story changes. The roll itself changes nothing until this step.</p></div>
+    <div class="step"><h3>8. Update the game state</h3><p>State is the small box of numbers and flags the game remembers between actions: health, ammo / supplies, position or scene, inventory, story flags (did you open the door? did the alarm go off?), roll log. If it is not in state, the game forgets it on the next action. That is the most common beginner bug, and the dashboard exists to catch it.</p></div>
+    <div class="step"><h3>9. Show the result on screen</h3><p>Show, in this order so it is checkable: what you tried, what you rolled, your modifier, your total, the DC, and the outcome. If a player cannot see those six things, they cannot trust the roll &mdash; and neither can a tester.</p></div>
+    <div class="step"><h3>10. Loop</h3><p>Back to step 1, until the mission ends (win, lose, or retreat) or the player quits. A game is mostly this loop, repeated. Missions, levels, and stories are just different actions and effects plugged into the same loop.</p></div>
+
+    <h3>Data flow, as boxes</h3>
+    <div class="mono">[ Screen / Buttons ] -- choice --&gt; [ Check picker ] -- check type --&gt;
+[ Dice roller ] -- roll --&gt; [ Modifier + DC compare ] -- outcome --&gt;
+[ Effect ] -- changes --&gt; [ Game state ] -- display --&gt; [ Screen / Log ]</div>
+    <p class="muted">Every arrow is one handoff. If a step is skipped, the next step gets bad data. When something looks wrong in testing, walk the arrows backwards: was the state wrong, the DC wrong, the modifier wrong, or the roll wrong?</p>
+
+    <h3>What is NOT in v1 data flow</h3>
+    <ul>
+      <li>No server, no internet, no login, no saving to the cloud</li>
+      <li>No AI deciding rolls or writing the story on the fly</li>
+      <li>No other players, no shop, no random paid items</li>
+      <li>No 3D, no animation engine &mdash; text and simple numbers first</li>
+    </ul>
+    <p class="muted">Those are later decisions, not missing pieces of v1. If a new idea needs a new box in the diagram above, it is scope growth, and it needs Tee&rsquo;s approval first.</p>
+  </section>
+
+  <section class="panel">
+    <h2>3. How the game is played &mdash; in plain words</h2>
+    <p>You play one person trying to get a job done in a rough, broken future. It is just you, solo. No team online, no one else playing against you.</p>
+    <p><b>How a turn works:</b> The game tells you where you are and what is in front of you. You pick what to do &mdash; search, talk, sneak, shoot, fix something. The game rolls a 20-sided die, adds how good you are at that thing, and checks it against how hard the thing is. Then it tells you plainly what happened, and you pick the next move.</p>
+    <p><b>Your main objective:</b> Finish the job and get out alive. For the first short mission, that means one clear job, not five at once &mdash; for example, search a wreck and bring the salvage back. If you finish the job and make it out, you win the run.</p>
+    <p><b>How you lose:</b> If your health runs out, or the job falls apart beyond fixing, the run ends. You can try again &mdash; the dice will fall differently next time.</p>
+    <p><b>Side goals, not required to win:</b> Find useful supplies, keep your health and gear in decent shape, and do not waste everything on the first fight. They make the next run easier, but they are not the win itself.</p>
+    <p><b>What the dice are for:</b> They are luck plus skill. A good character still can roll badly, and a weak character still can roll well. That is the point &mdash; you make smart choices, the dice decide how well they land.</p>
+    <p class="muted">You do not need to learn rules first. Every result shows what you tried, what you rolled, your bonus, the target number, and whether it worked.</p>
+  </section>
+
+  <section class="panel">
+    <h2>4. Playable dice v1 &mdash; built Oct 30, to ACI-TAIG-HAMMER-001</h2>
+    <p><b>File:</b> hammer-game-dice-v1.html, in this same folder and in the repo below. Single offline file, open it in a browser and play.</p>
+    <p><b>Repo:</b> github.com/the-ai-guy-2k/taig_hammer — created Oct 30, empty at first check, main branch. This board is the dashboard for that repo.</p>
+    <p><b>What it does, exact:</b> One short mission — search a wreck, bring the salvage back, get out alive. Start: Health 20/20, Supplies 3, Gear 100%, Salvage not found, Raider watching, log empty. Actions: Search (+3, target 12), Sneak (+2, target 14), Shoot (+3, target 13), Fix the jammed hatch and exit (+2, target 11, no roll until salvage is found), Use a supply (+5 health, no roll). Win = salvage found + fix succeeds: “Job done. You got out alive.” Lose = health out only: “Run over. Health out.” Gear drops 10% on a crit fail, never causes a loss in v1. No collapse counter — health out is the job-collapsed condition in v1.</p>
+    <p><b>Correction, Oct 30:</b> An earlier draft in this window used 3 salvage, a collapse counter, and different DCs. That draft was wrong against the ACI and was replaced with the exact ACI version above. Do not use the earlier numbers.</p>
+    <p><b>Tested:</b> JavaScript syntax checked with node --check, no external links in the game file, no borrowed-brand names in the game file. Real playtest is still Tee, then Cole when Tee says go — Cole has not been messaged. Nothing is marked done until Tee has actually played it.</p>
+    <p class="muted">No spend, no outreach, no AI rolls, no multiplayer, no paid power. Original game only, no licence claim.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Board rules</h2>
+    <p class="note">No ACI tonight, Oct 28. Board work only. Nothing is marked done until Tee or Cole has actually tested it.</p>
+    <p>One board only, going forward. New sections get added to this file, in this locked style. The separate styled dashboard file is superseded by this combined board &mdash; do not update it separately.</p>
+    <p>Palette: charcoal #141210, panel #1e1b18, bone #d6cdb8, rust #c07a2e, hazard #d9a441, rust red #8c3324. Flat panels, hard corners, uppercase headings, monospace readouts. No bright white, no SaaS blue, no neon, no borrowed iconography.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Next step, when Tee says go</h2>
+    <p>ACI-001, when it comes: dice engine only, using the flow above, in a single offline file Tee can open on his laptop and tinker with.</p>
+    <p class="muted">Until then, this board is the dashboard. Update the Status column as pieces move, and do not mark anything &ldquo;done&rdquo; until Tee or Cole has actually tested it.</p>
+  </section>
+
+</main>
+<footer>LOCKED look, Oct 28, 2026. Single combined board. Single offline file. Look only &mdash; no game code, no AI rolls, no multiplayer, no paid power in v1. Source text: dev-dashboard-and-data-flow.md in the same folder.</footer>
+</body>
+</html>
