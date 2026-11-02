@@ -1,0 +1,38 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://player.gd" id="1"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_player"]
+size = Vector2(32, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_top"]
+size = Vector2(960, 20)
+
+[node name="Main" type="Node2D"]
+
+[node name="Player" type="CharacterBody2D" parent="."]
+script = ExtResource("1")
+position = Vector2(120, 270)
+
+[node name="PlayerShape" type="ColorRect" parent="Player"]
+offset_left = -16.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 16.0
+color = Color(0.839, 0.804, 0.722, 1)
+
+[node name="PlayerCollision" type="CollisionShape2D" parent="Player"]
+shape = SubResource("RectangleShape2D_player")
+
+[node name="WallTop" type="StaticBody2D" parent="."]
+position = Vector2(480, 10)
+
+[node name="WallTopShape" type="ColorRect" parent="WallTop"]
+offset_left = -480.0
+offset_top = -10.0
+offset_right = 480.0
+offset_bottom = 10.0
+color = Color(0.118, 0.106, 0.094, 1)
+
+[node name="WallTopCollision" type="CollisionShape2D" parent="WallTop"]
+shape = SubResource("RectangleShape2D_top")
